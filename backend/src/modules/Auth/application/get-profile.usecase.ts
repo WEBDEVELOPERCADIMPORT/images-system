@@ -2,6 +2,7 @@ import AppError from "@shared/errors/AppError.js";
 import type { AuthRepository } from "../domain/auth.repository.js";
 
 interface GetProfileResponse {
+    id: string;
     name: string;
     email: string;
     roles: string[];
@@ -21,6 +22,7 @@ export class GetProfileUseCase {
         }
         
         return {
+            id: user.id,
             name: `${user.firstName} ${user.lastName}`.trim(),
             email: user.email,
             roles: user.roles,

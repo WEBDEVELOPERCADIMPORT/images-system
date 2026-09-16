@@ -1,42 +1,51 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../../../../core/api/config';
 import type { LoginRequestDto, LoginResponseDto } from '../../domain/dto/auth.dto';
+import type { AuthUser } from '../../domain/interfaces/auth.interfaces';
 
-/**
- * Auth service base URL.
- * Public endpoints: use plain axios (not the authenticated instance).
- */
 const AUTH_BASE_URL = `${API_BASE_URL}/auth`;
+
+interface ApiResponse<T> {
+    status: string;
+    message: string;
+    data: T;
+}
 
 /**
  * Authenticates a user with email and password.
- * Uses plain axios because this is a public endpoint (no token required).
+ * Uses plain axios with credentials so refreshToken cookie is set by the browser.
  */
 const loginUser = async (data: LoginRequestDto): Promise<LoginResponseDto> => {
-    const response = await axios.post<LoginResponseDto>(`${AUTH_BASE_URL}/login`, data);
-    return response.data;
+    const response = await axios.post<ApiResponse<LoginResponseDto>>(
+        `${AUTH_BASE_URL}/login`,
+        data,
+        { withCredentials: true }
+    );
+    return response.data.data;
+};
+
+/**
+ * Refreshes the session using the httpOnly refreshToken cookie.
+ * Returns new accessToken and current user.
+ */
+const refreshSession = async (): Promise<LoginResponseDto> => {
+    const response = await axios.post<ApiResponse<LoginResponseDto>>(
+        `${AUTH_BASE_URL}/refresh`,
+        {},
+        { withCredentials: true }
+    );
+    return response.data.data;
 };
 
 /**
  * Retrieves the currently authenticated user's profile.
- * Requires a valid token — consumed by ProtectedRoute after refresh.
  */
-const getCurrentUser = async (accessToken: string): Promise<LoginResponseDto['user']> => {
-    const response = await axios.get<LoginResponseDto['user']>(`${AUTH_BASE_URL}/me`, {
+const getCurrentUser = async (accessToken: string): Promise<AuthUser> => {
+    const response = await axios.get<ApiResponse<AuthUser>>(`${AUTH_BASE_URL}/me`, {
         headers: { Authorization: `Bearer ${accessToken}` },
+        withCredentials: true,
     });
-    return response.data;
+    return response.data.data;
 };
 
-/**
- * Refreshes the access token using a refresh token.
- * Uses plain axios — the old token may be expired.
- */
-const refreshAccessToken = async (refreshToken: string): Promise<{ accessToken: string }> => {
-    const response = await axios.post<{ accessToken: string }>(`${AUTH_BASE_URL}/refresh`, {
-        refreshToken,
-    });
-    return response.data;
-};
-
-export { loginUser, getCurrentUser, refreshAccessToken };
+export { loginUser, refreshSession, getCurrentUser };

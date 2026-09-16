@@ -5,17 +5,32 @@ import { PrismaErrorMapper } from "@shared/db/database/prisma/PrismaErrorMapper.
 import { UsersMapper } from "./mappers/users.mapper.js";
 
 export class PrismaUsersRepository implements UsersRepository {
-    constructor(private readonly prisma: PrismaClient) {}
+    constructor(private readonly prisma: PrismaClient) { }
 
     async create(data: CreateUser): Promise<GetUser> {
         try {
+            const roleNames = data.roles && data.roles.length > 0 ? data.roles : ['USER'];
             const user = await this.prisma.user.create({
                 data: {
                     email: data.email,
                     passwordHash: data.passwordHash,
                     firstName: data.firstName,
                     lastName: data.lastName,
-                    isActive: true
+                    isActive: true,
+                    userRoles: {
+                        create: roleNames.map(name => ({
+                            role: {
+                                connect: { name }
+                            }
+                        }))
+                    }
+                },
+                include: {
+                    userRoles: {
+                        select: {
+                            role: { select: { name: true } }
+                        }
+                    }
                 }
             });
             return UsersMapper.toGetUser(user);
@@ -26,6 +41,25 @@ export class PrismaUsersRepository implements UsersRepository {
 
     async update(id: string, data: UpdateUser): Promise<GetUser> {
         try {
+            if (data.roles !== undefined) {
+                await this.prisma.userRole.deleteMany({
+                    where: { userId: id }
+                });
+                if (data.roles.length > 0) {
+                    const roles = await this.prisma.role.findMany({
+                        where: { name: { in: data.roles } }
+                    });
+                    if (roles.length > 0) {
+                        await this.prisma.userRole.createMany({
+                            data: roles.map(r => ({
+                                userId: id,
+                                roleId: r.id
+                            }))
+                        });
+                    }
+                }
+            }
+
             const user = await this.prisma.user.update({
                 where: { id },
                 data: {
@@ -33,6 +67,13 @@ export class PrismaUsersRepository implements UsersRepository {
                     firstName: data.firstName,
                     lastName: data.lastName,
                     passwordHash: data.passwordHash
+                },
+                include: {
+                    userRoles: {
+                        select: {
+                            role: { select: { name: true } }
+                        }
+                    }
                 }
             });
             return UsersMapper.toGetUser(user);
@@ -44,7 +85,14 @@ export class PrismaUsersRepository implements UsersRepository {
     async findById(id: string): Promise<GetUser | null> {
         try {
             const user = await this.prisma.user.findUnique({
-                where: { id }
+                where: { id },
+                include: {
+                    userRoles: {
+                        select: {
+                            role: { select: { name: true } }
+                        }
+                    }
+                }
             });
             return user ? UsersMapper.toGetUser(user) : null;
         } catch (error) {
@@ -66,6 +114,13 @@ export class PrismaUsersRepository implements UsersRepository {
     async findAll(): Promise<GetSimpleUser[]> {
         try {
             const users = await this.prisma.user.findMany({
+                include: {
+                    userRoles: {
+                        select: {
+                            role: { select: { name: true } }
+                        }
+                    }
+                },
                 orderBy: {
                     createdAt: 'desc'
                 }
@@ -76,11 +131,74 @@ export class PrismaUsersRepository implements UsersRepository {
         }
     }
 
+    async findAllPaginated(
+        page: number = 1,
+        limit: number = 10,
+        filters?: { q?: string }
+    ): Promise<{ data: GetSimpleUser[]; total: number }> {
+        try {
+            const offset = (page - 1) * limit;
+            const whereClause: any = {};
+            if (filters?.q) {
+                const query = filters.q.trim();
+                whereClause.OR = [
+                    { email: { contains: query } },
+                    { firstName: { contains: query } },
+                    { lastName: { contains: query } }
+                ];
+            }
+
+            const [users, total] = await Promise.all([
+                this.prisma.user.findMany({
+                    where: whereClause,
+                    skip: offset,
+                    take: limit,
+                    include: {
+                        userRoles: {
+                            select: {
+                                role: { select: { name: true } }
+                            }
+                        }
+                    },
+                    orderBy: {
+                        createdAt: 'desc'
+                    }
+                }),
+                this.prisma.user.count({ where: whereClause })
+            ]);
+
+            return {
+                data: users.map(user => UsersMapper.toGetSimpleUser(user)),
+                total
+            };
+        } catch (error) {
+            throw PrismaErrorMapper.map(error);
+        }
+    }
+
+    async findAllRoles(): Promise<{ id: string; name: string; description: string | null }[]> {
+        try {
+            return await this.prisma.role.findMany({
+                select: { id: true, name: true, description: true },
+                orderBy: { name: 'asc' }
+            });
+        } catch (error) {
+            throw PrismaErrorMapper.map(error);
+        }
+    }
+
     async disable(id: string): Promise<GetUser> {
         try {
             const user = await this.prisma.user.update({
                 where: { id },
-                data: { isActive: false }
+                data: { isActive: false },
+                include: {
+                    userRoles: {
+                        select: {
+                            role: { select: { name: true } }
+                        }
+                    }
+                }
             });
             return UsersMapper.toGetUser(user);
         } catch (error) {
@@ -92,7 +210,14 @@ export class PrismaUsersRepository implements UsersRepository {
         try {
             const user = await this.prisma.user.update({
                 where: { id },
-                data: { isActive: false }
+                data: { isActive: false },
+                include: {
+                    userRoles: {
+                        select: {
+                            role: { select: { name: true } }
+                        }
+                    }
+                }
             });
             return UsersMapper.toGetUser(user);
         } catch (error) {

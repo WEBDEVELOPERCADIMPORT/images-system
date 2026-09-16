@@ -4,6 +4,7 @@ import BaseController from "@presentation/base.controller.js";
 import type { CreateUserUseCase } from "../application/create-user.usecase.js";
 import type { UpdateUserUseCase } from "../application/update-user.usecase.js";
 import type { ListUsersUseCase } from "../application/list-users.usecase.js";
+import type { ListRolesUseCase } from "../application/list-roles.usecase.js";
 import type { DisableUserUseCase } from "../application/disable-user.usecase.js";
 import type { DeleteUserUseCase } from "../application/delete-user.usecase.js";
 import type { HashProvider } from "@shared/domain/hash.provider.js";
@@ -13,6 +14,7 @@ export class UsersController extends BaseController {
         private readonly createUserUseCase: CreateUserUseCase,
         private readonly updateUserUseCase: UpdateUserUseCase,
         private readonly listUsersUseCase: ListUsersUseCase,
+        private readonly listRolesUseCase: ListRolesUseCase,
         private readonly disableUserUseCase: DisableUserUseCase,
         private readonly deleteUserUseCase: DeleteUserUseCase,
         private readonly hashProvider: HashProvider
@@ -54,8 +56,22 @@ export class UsersController extends BaseController {
 
     list = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const users = await this.listUsersUseCase.execute();
-            return res.status(200).json(ResponseHttp.success("Users fetched successfully", users));
+            const page = req.query.page ? Math.max(1, parseInt(req.query.page as string, 10)) : 1;
+            const limit = req.query.limit ? Math.max(1, parseInt(req.query.limit as string, 10)) : 10;
+            const q = req.query.q ? String(req.query.q) : undefined;
+            const offset = (page - 1) * limit;
+
+            const { data, total } = await this.listUsersUseCase.execute({ page, limit, q });
+            return res.status(200).json(ResponseHttp.pagination("Users fetched successfully", data, total, limit, offset));
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    listRoles = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const roles = await this.listRolesUseCase.execute();
+            return res.status(200).json(ResponseHttp.success("Roles fetched successfully", roles));
         } catch (error) {
             next(error);
         }

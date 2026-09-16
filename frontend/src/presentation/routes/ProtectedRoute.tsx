@@ -1,35 +1,50 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../core/store/authStore';
 import { FullPageLoader } from '../../shared/components/loaders';
+import { refreshSession } from '../../modules/auth/infrastructure/services/auth.service';
 
 /**
  * ProtectedRoute — global authentication guard.
  *
  * Responsibilities:
- * 1. Checks whether an access token exists in the auth store.
- * 2. If no token exists, redirects immediately to /auth/login (no refresh attempted).
- * 3. If a token exists, renders the child routes (FullLayout + module routes).
- * 4. Shows a FullPageLoader while any async session validation is in progress.
- * 5. Preserves the original location via state.from so the user is redirected back after login.
- *
- * Note: Token refresh and re-fetching the current user should be added here
- * when the backend provides a refresh endpoint. The auth store (clearAuth) is
- * used by the Axios 401 interceptor to invalidate the session globally.
+ * 1. If accessToken exists but user is null (page reload), restores session via refreshSession().
+ * 2. Shows FullPageLoader during session restoration.
+ * 3. If no token or refresh fails, redirects to /auth/login preserving location state.
+ * 4. Once user and accessToken are present, renders child routes (FullLayout + module routes).
  */
 const ProtectedRoute = () => {
     const location = useLocation();
-    const accessToken = useAuthStore((state) => state.accessToken);
-    const [isValidating, setIsValidating] = useState(false);
+    const {
+        accessToken,
+        user,
+        isRestoringSession,
+        setAuth,
+        setIsRestoringSession,
+        clearAuth
+    } = useAuthStore();
 
     useEffect(() => {
-        // Placeholder: add token refresh / session re-validation logic here.
-        // Call setIsValidating(true) before async work and setIsValidating(false) after.
-        setIsValidating(false);
-    }, [accessToken]);
+        const restoreSession = async () => {
+            // Only restore if we have an accessToken and no user in memory
+            if (accessToken && !user && !isRestoringSession) {
+                setIsRestoringSession(true);
+                try {
+                    const session = await refreshSession();
+                    setAuth(session.accessToken, session.user);
+                } catch {
+                    clearAuth();
+                } finally {
+                    setIsRestoringSession(false);
+                }
+            }
+        };
 
-    if (isValidating) {
-        return <FullPageLoader message="Validating session..." />;
+        restoreSession();
+    }, [accessToken, user, isRestoringSession, setAuth, setIsRestoringSession, clearAuth]);
+
+    if (isRestoringSession) {
+        return <FullPageLoader message="Restoring session..." />;
     }
 
     if (!accessToken) {

@@ -1,59 +1,64 @@
-import { useState } from 'react';
+import React from 'react';
 import { Box, Toolbar } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 import Navbar from './navbar/Navbar.component';
 import Sidebar from './sidebar/Sidebar.component';
+import {
+    SidebarProvider,
+    useSidebar,
+    SIDEBAR_EXPANDED_WIDTH,
+    SIDEBAR_COLLAPSED_WIDTH,
+} from './sidebar/SidebarContext';
 
-const SIDEBAR_WIDTH = 256;
-
-/**
- * FullLayout — authenticated application layout.
- * Composes: Navbar (top) + Sidebar (left) + Main content area (Outlet).
- * Responsive: sidebar collapses to a temporary drawer on mobile.
- */
-const FullLayout = () => {
-    const [mobileOpen, setMobileOpen] = useState(false);
-
-    const handleToggleSidebar = () => {
-        setMobileOpen((prev) => !prev);
-    };
+const FullLayoutInner: React.FC = () => {
+    const { isCollapsed } = useSidebar();
+    const currentSidebarWidth = isCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_EXPANDED_WIDTH;
 
     return (
-        <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: 'background.default' }}>
-            <Navbar
-                onToggleSidebar={handleToggleSidebar}
-                sidebarWidth={SIDEBAR_WIDTH}
-            />
+        <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+            {/* Top Navigation */}
+            <Navbar />
 
-            <Sidebar
-                open={mobileOpen}
-                onClose={() => setMobileOpen(false)}
-                width={SIDEBAR_WIDTH}
-            />
+            {/* Left Navigation (Desktop Mini/Expanded & Mobile Drawer) */}
+            <Sidebar />
 
-            {/* Main content */}
+            {/* Main Content Area: Automatically expands when sidebar collapses on desktop */}
             <Box
                 component="main"
                 sx={{
                     flexGrow: 1,
                     minWidth: 0,
+                    width: { xs: '100%', md: `calc(100% - ${currentSidebarWidth}px)` },
                     display: 'flex',
                     flexDirection: 'column',
+                    transition: 'width 0.25s ease',
+                    minHeight: '100vh',
                 }}
             >
-                {/* Toolbar spacer — pushes content below the fixed AppBar */}
-                <Toolbar />
+                {/* Spacer pushes content below fixed AppBar */}
+                <Toolbar sx={{ minHeight: 64 }} />
 
                 <Box
                     sx={{
                         flex: 1,
-                        p: { xs: 2, sm: 3 },
+                        p: { xs: 2, sm: 3, md: 4 },
+                        maxWidth: '1600px',
+                        width: '100%',
+                        mx: 'auto',
                     }}
                 >
                     <Outlet />
                 </Box>
             </Box>
         </Box>
+    );
+};
+
+export const FullLayout: React.FC = () => {
+    return (
+        <SidebarProvider>
+            <FullLayoutInner />
+        </SidebarProvider>
     );
 };
 

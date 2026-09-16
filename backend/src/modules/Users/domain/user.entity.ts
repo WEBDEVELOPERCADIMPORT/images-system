@@ -5,14 +5,23 @@ export interface User {
     firstName: string;
     lastName: string;
     isActive: boolean;
+    roles?: string[];
     createdAt: Date;
     updatedAt: Date;
 }
 
-export interface CreateUser extends Omit<User, 'id' | 'isActive' | 'createdAt' | 'updatedAt'> {}
+export interface CreateUser extends Omit<User, 'id' | 'isActive' | 'createdAt' | 'updatedAt'> {
+    roles?: string[];
+}
 
-export interface UpdateUser extends Partial<Omit<User, 'id' | 'isActive' | 'createdAt' | 'updatedAt'>> {}
+export interface UpdateUser extends Partial<Omit<User, 'id' | 'isActive' | 'createdAt' | 'updatedAt'>> {
+    roles?: string[];
+}
 
-export interface GetUser extends Omit<User, 'passwordHash'> {}
+export interface GetUser extends Omit<User, 'passwordHash'> {
+    roles: string[];
+}
 
-export interface GetSimpleUser extends Pick<User, 'id' | 'firstName' | 'lastName' | 'email' | 'isActive'> {}
+export interface GetSimpleUser extends Pick<User, 'id' | 'firstName' | 'lastName' | 'email' | 'isActive'> {
+    roles: string[];
+}

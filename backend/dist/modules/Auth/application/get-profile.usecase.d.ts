@@ -1,5 +1,6 @@
 import type { AuthRepository } from "../domain/auth.repository.js";
 interface GetProfileResponse {
+    id: string;
     name: string;
     email: string;
     roles: string[];

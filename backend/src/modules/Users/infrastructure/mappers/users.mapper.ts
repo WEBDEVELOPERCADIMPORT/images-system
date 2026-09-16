@@ -15,24 +15,28 @@ export class UsersMapper {
     }
 
     static toGetUser(user: any): GetUser {
+        const roles = user.userRoles?.map((ur: any) => ur.role?.name || ur.role).filter(Boolean) || [];
         return {
             id: user.id,
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
             isActive: user.isActive,
+            roles,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt
         };
     }
 
     static toGetSimpleUser(user: any): GetSimpleUser {
+        const roles = user.userRoles?.map((ur: any) => ur.role?.name || ur.role).filter(Boolean) || [];
         return {
             id: user.id,
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
-            isActive: user.isActive
+            isActive: user.isActive,
+            roles
         };
     }
 }

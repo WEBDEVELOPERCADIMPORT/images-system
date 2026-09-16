@@ -1,9 +1,11 @@
 import type { AuthUser } from '../interfaces/auth.interfaces';
+import type { LoginFormValues } from '../schemas/auth.schemas';
 
-export interface LoginRequestDto {
-    email: string;
-    password: string;
-}
+/**
+ * LoginRequestDto — derived from the Zod schema (single source of truth).
+ * This ensures the form values type and the API request type are always in sync.
+ */
+export type LoginRequestDto = LoginFormValues;
 
 export interface LoginResponseDto {
     accessToken: string;

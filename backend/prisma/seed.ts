@@ -53,7 +53,76 @@ async function main() {
         });
     }
 
-    console.log("✅ Categorías default creadas exitosamente");
+    // Ensure standard roles exist
+    await prisma.role.upsert({
+        where: { name: "ADMIN" },
+        update: {},
+        create: {
+            name: "ADMIN",
+            description: "Administrator with general management permissions",
+            isSystem: false,
+        }
+    });
+
+    await prisma.role.upsert({
+        where: { name: "USER" },
+        update: {},
+        create: {
+            name: "USER",
+            description: "Standard user account",
+            isSystem: false,
+        }
+    });
+
+    // Ensure permissions exist
+    const permissions = [
+        { action: 'users:create', description: 'Create users' },
+        { action: 'users:read', description: 'Read users' },
+        { action: 'users:update', description: 'Update users' },
+        { action: 'users:delete', description: 'Delete users' },
+        { action: 'brands:create', description: 'Create brands' },
+        { action: 'brands:read', description: 'Read brands' },
+        { action: 'brands:update', description: 'Update brands' },
+        { action: 'brands:delete', description: 'Delete brands' },
+        { action: 'folders:create', description: 'Create folders' },
+        { action: 'folders:read', description: 'Read folders' },
+        { action: 'folders:update', description: 'Update folders' },
+        { action: 'folders:delete', description: 'Delete folders' },
+    ];
+
+    for (const perm of permissions) {
+        await prisma.permission.upsert({
+            where: { action: perm.action },
+            update: {},
+            create: perm
+        });
+    }
+
+    // Connect all permissions to SUPER_ADMIN role
+    const superAdminRole = await prisma.role.findUnique({
+        where: { name: "SUPER_ADMIN" }
+    });
+
+    if (superAdminRole) {
+        const allPermissions = await prisma.permission.findMany();
+        for (const p of allPermissions) {
+            await prisma.rolePermission.upsert({
+                where: {
+                    roleId_permissionId: {
+                        roleId: superAdminRole.id,
+                        permissionId: p.id
+                    }
+                },
+                update: {},
+                create: {
+                    roleId: superAdminRole.id,
+                    permissionId: p.id
+                }
+            });
+        }
+    }
+
+    console.log("✅ Permisos y roles actualizados exitosamente");
     console.log("¡Seed ejecutado con éxito!");
 }
 

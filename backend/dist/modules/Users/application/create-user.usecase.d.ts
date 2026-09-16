@@ -7,6 +7,7 @@ interface CreateUserRequest {
     passwordRaw: string;
     firstName: string;
     lastName: string;
+    roles?: string[];
 }
 export declare class CreateUserUseCase {
     private readonly usersRepository;

@@ -6,6 +6,7 @@ import { UpdateUserUseCase } from "./application/update-user.usecase.js";
 import { ListUsersUseCase } from "./application/list-users.usecase.js";
 import { DisableUserUseCase } from "./application/disable-user.usecase.js";
 import { DeleteUserUseCase } from "./application/delete-user.usecase.js";
+import { ListRolesUseCase } from "./application/list-roles.usecase.js";
 import { UsersController } from "./presentation/users.controller.js";
 import { createAuditLogUseCase } from "../Audit/audit.module.js";
 
@@ -17,6 +18,7 @@ export const hashProvider = new Argon2HashProvider();
 export const createUserUseCase = new CreateUserUseCase(usersRepository, hashProvider, createAuditLogUseCase);
 export const updateUserUseCase = new UpdateUserUseCase(usersRepository, createAuditLogUseCase);
 export const listUsersUseCase = new ListUsersUseCase(usersRepository);
+export const listRolesUseCase = new ListRolesUseCase(usersRepository);
 export const disableUserUseCase = new DisableUserUseCase(usersRepository);
 export const deleteUserUseCase = new DeleteUserUseCase(usersRepository);
 
@@ -24,6 +26,7 @@ export const usersController = new UsersController(
     createUserUseCase,
     updateUserUseCase,
     listUsersUseCase,
+    listRolesUseCase,
     disableUserUseCase,
     deleteUserUseCase,
     hashProvider

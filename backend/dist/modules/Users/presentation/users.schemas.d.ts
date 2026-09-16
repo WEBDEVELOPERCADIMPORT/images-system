@@ -4,12 +4,14 @@ export declare const CreateUserSchema: z.ZodObject<{
     passwordRaw: z.ZodString;
     firstName: z.ZodString;
     lastName: z.ZodString;
+    roles: z.ZodDefault<z.ZodArray<z.ZodString>>;
 }, z.core.$strip>;
 export declare const UpdateUserSchema: z.ZodObject<{
     email: z.ZodOptional<z.ZodString>;
     passwordRaw: z.ZodOptional<z.ZodString>;
     firstName: z.ZodOptional<z.ZodString>;
     lastName: z.ZodOptional<z.ZodString>;
+    roles: z.ZodOptional<z.ZodArray<z.ZodString>>;
 }, z.core.$strip>;
 export declare const UserIdSchema: z.ZodObject<{
     id: z.ZodString;

@@ -4,7 +4,7 @@ import routes from './routes/index.routes.js';
 import cookieParser from 'cookie-parser';
 const app = express();
 app.use(cors({
-    origin: ['http://localhost:8001'],
+    origin: ['http://localhost:3001'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization']

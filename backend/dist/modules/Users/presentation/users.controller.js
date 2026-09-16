@@ -4,14 +4,16 @@ export class UsersController extends BaseController {
     createUserUseCase;
     updateUserUseCase;
     listUsersUseCase;
+    listRolesUseCase;
     disableUserUseCase;
     deleteUserUseCase;
     hashProvider;
-    constructor(createUserUseCase, updateUserUseCase, listUsersUseCase, disableUserUseCase, deleteUserUseCase, hashProvider) {
+    constructor(createUserUseCase, updateUserUseCase, listUsersUseCase, listRolesUseCase, disableUserUseCase, deleteUserUseCase, hashProvider) {
         super();
         this.createUserUseCase = createUserUseCase;
         this.updateUserUseCase = updateUserUseCase;
         this.listUsersUseCase = listUsersUseCase;
+        this.listRolesUseCase = listRolesUseCase;
         this.disableUserUseCase = disableUserUseCase;
         this.deleteUserUseCase = deleteUserUseCase;
         this.hashProvider = hashProvider;
@@ -47,8 +49,21 @@ export class UsersController extends BaseController {
     };
     list = async (req, res, next) => {
         try {
-            const users = await this.listUsersUseCase.execute();
-            return res.status(200).json(ResponseHttp.success("Users fetched successfully", users));
+            const page = req.query.page ? Math.max(1, parseInt(req.query.page, 10)) : 1;
+            const limit = req.query.limit ? Math.max(1, parseInt(req.query.limit, 10)) : 10;
+            const q = req.query.q ? String(req.query.q) : undefined;
+            const offset = (page - 1) * limit;
+            const { data, total } = await this.listUsersUseCase.execute({ page, limit, q });
+            return res.status(200).json(ResponseHttp.pagination("Users fetched successfully", data, total, limit, offset));
+        }
+        catch (error) {
+            next(error);
+        }
+    };
+    listRoles = async (req, res, next) => {
+        try {
+            const roles = await this.listRolesUseCase.execute();
+            return res.status(200).json(ResponseHttp.success("Roles fetched successfully", roles));
         }
         catch (error) {
             next(error);

@@ -10,6 +10,7 @@ export class GetProfileUseCase {
             throw new AppError("User not found", "NOT_FOUND", 404);
         }
         return {
+            id: user.id,
             name: `${user.firstName} ${user.lastName}`.trim(),
             email: user.email,
             roles: user.roles,

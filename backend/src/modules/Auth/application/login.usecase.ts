@@ -14,6 +14,7 @@ interface LoginResponse {
     accessToken: string,
     refreshToken: string,
     user: {
+        id: string,
         name: string,
         email: string,
         permissions: string[],
@@ -76,6 +77,7 @@ export class LoginUseCase {
             accessToken,
             refreshToken,
             user: {
+                id: user.id,
                 name: `${user.firstName} ${user.lastName}`.trim(),
                 email: user.email,
                 permissions: user.permissions,

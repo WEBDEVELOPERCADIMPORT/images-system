@@ -5,13 +5,16 @@ import { ErrorMiddleware } from "@app/middleware/Error.middleware.js";
 import AuthRoutes from "@modules/Auth/presentation/auth.routes.js";
 import UsersRoutes from "@modules/Users/presentation/users.routes.js";
 import AuditRoutes from "@modules/Audit/presentation/audit.routes.js";
+import BrandsRoutes from "@modules/Brands/presentation/brands.routes.js";
+import FoldersRoutes from "@modules/Folders/presentation/folders.routes.js";
 
 const router = Router();
-
 
 router.use('/auth', AuthRoutes);
 router.use('/users', UsersRoutes);
 router.use('/audit', AuditRoutes);
+router.use('/brands', BrandsRoutes);
+router.use('/folders', FoldersRoutes);
 
 router.use(ErrorMiddleware)
 

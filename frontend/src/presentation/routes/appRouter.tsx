@@ -1,6 +1,10 @@
 import { Suspense, lazy } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { authRoutes } from '../../modules/auth/presentation/auth.routes';
+import { brandsRoutes } from '../../modules/brands/presentation/brands.routes';
+import { directoriosRoutes } from '../../modules/directorios/presentation/directorios.routes';
+import { usersRoutes } from '../../modules/users/presentation/users.routes';
+import { profileRoutes } from '../../modules/profile/presentation/profile.routes';
 import ProtectedRoute from './ProtectedRoute';
 import { FullPageLoader } from '../../shared/components/loaders';
 import { AccessDeniedPage } from '../../shared/pages';
@@ -49,10 +53,23 @@ export const appRouter = createBrowserRouter([
                         element: <AccessDeniedPage />,
                     },
 
-                    // ── Module routes will be added here as modules are implemented ──
-                    // Example:
-                    // ...usersRoutes,
-                    // ...clientsRoutes,
+                    // ── Module routes ──
+                    {
+                        path: 'brands',
+                        children: [...brandsRoutes],
+                    },
+                    {
+                        path: 'directorios',
+                        children: [...directoriosRoutes],
+                    },
+                    {
+                        path: 'users',
+                        children: [...usersRoutes],
+                    },
+                    {
+                        path: 'profile',
+                        children: [...profileRoutes],
+                    },
                 ],
             },
         ],

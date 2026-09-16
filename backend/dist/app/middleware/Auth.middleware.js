@@ -52,7 +52,13 @@ export class AuthMiddleware {
     checkPermission = (permissions) => {
         return (req, res, next) => {
             const user = req.user;
-            if (!user || !user.permissions) {
+            if (!user) {
+                return next(new AppError("Not authorized to perform this action", "FORBIDDEN", 403));
+            }
+            if (user.roles && user.roles.includes("SUPER_ADMIN")) {
+                return next();
+            }
+            if (!user.permissions) {
                 return next(new AppError("Not authorized to perform this action", "FORBIDDEN", 403));
             }
             const hasAllPermissions = permissions.every((permission) => user.permissions.includes(permission));
@@ -65,7 +71,13 @@ export class AuthMiddleware {
     checkPermissionSome = (permissions) => {
         return (req, res, next) => {
             const user = req.user;
-            if (!user || !user.permissions) {
+            if (!user) {
+                return next(new AppError("Not authorized to perform this action", "FORBIDDEN", 403));
+            }
+            if (user.roles && user.roles.includes("SUPER_ADMIN")) {
+                return next();
+            }
+            if (!user.permissions) {
                 return next(new AppError("Not authorized to perform this action", "FORBIDDEN", 403));
             }
             const hasSomePermissions = permissions.some((permission) => user.permissions.includes(permission));

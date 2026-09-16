@@ -4,9 +4,11 @@ export class ListUsersUseCase {
     constructor(usersRepository) {
         this.usersRepository = usersRepository;
     }
-    async execute() {
+    async execute(params) {
         try {
-            return await this.usersRepository.findAll();
+            const page = params?.page && params.page > 0 ? Number(params.page) : 1;
+            const limit = params?.limit && params.limit > 0 ? Number(params.limit) : 10;
+            return await this.usersRepository.findAllPaginated(page, limit, { q: params?.q });
         }
         catch (error) {
             if (error instanceof AppError) {

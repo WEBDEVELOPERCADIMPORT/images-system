@@ -11,6 +11,7 @@ const validatedMiddleware = new ValidatedMiddleware();
 // Protect routes - requires authentication
 router.use(authMiddleware.routeProtect);
 
+router.get("/roles", usersController.listRoles);
 router.get("/", usersController.list);
 router.post("/", validatedMiddleware.validateBody(CreateUserSchema), usersController.create);
 router.put("/:id", validatedMiddleware.validateParams(UserIdSchema), validatedMiddleware.validateBody(UpdateUserSchema), usersController.update);

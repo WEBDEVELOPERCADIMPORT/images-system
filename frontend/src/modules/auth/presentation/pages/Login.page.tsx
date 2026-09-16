@@ -75,10 +75,9 @@ const LoginPage = () => {
                         src={"/logo.png"}
                         alt={"Logo"}
                         sx={{
-                            width: 60,
-                            height: 60,
+                            width: 100,
+                            height: 100,
                             borderRadius: '10px',
-                            backgroundColor: '#006bff',
                             mb: 0.5,
                         }}
                     />
