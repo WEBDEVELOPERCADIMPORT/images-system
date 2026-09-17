@@ -1,14 +1,15 @@
 import type { BrandsRepository } from "../domain/brands.repository.js";
-import type { CreateAuditLogUseCase } from "../../Audit/application/create-audit-log.usecase.js";
+import type { AuditLogService } from "../../Audit/application/audit-log.service.js";
+import type { AuditContext } from "../../Audit/domain/audit-log.entity.js";
 import AppError from "@shared/errors/AppError.js";
 
 export class DeleteBrandUseCase {
     constructor(
         private readonly brandsRepository: BrandsRepository,
-        private readonly createAuditLogUseCase: CreateAuditLogUseCase
+        private readonly auditLogService: AuditLogService
     ) {}
 
-    async execute(id: string, userId?: string | null): Promise<void> {
+    async execute(id: string, context?: AuditContext): Promise<void> {
         try {
             const existing = await this.brandsRepository.findById(id);
             if (!existing) {
@@ -17,13 +18,20 @@ export class DeleteBrandUseCase {
 
             await this.brandsRepository.delete(id);
 
-            await this.createAuditLogUseCase.execute({
-                userId,
+            await this.auditLogService.record({
+                userId: context?.userId,
                 action: 'DELETE',
-                resource: 'BRAND',
+                resource: 'brand',
                 resourceId: id,
-                details: { name: existing.name }
-            }).catch(err => console.error("Failed to create audit log for brand delete", err));
+                context,
+                details: {
+                    deleted: {
+                        id: existing.id,
+                        name: existing.name,
+                        description: existing.description
+                    }
+                }
+            });
         } catch (error) {
             if (error instanceof AppError) {
                 throw error;
@@ -32,3 +40,4 @@ export class DeleteBrandUseCase {
         }
     }
 }
+

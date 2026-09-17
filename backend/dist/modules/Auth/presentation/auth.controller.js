@@ -1,5 +1,6 @@
 import ResponseHttp from "../../../app/http/response.http.js";
 import AppError from "../../../shared/errors/AppError.js";
+import BaseController from "../../../presentation/base.controller.js";
 const COOKIE_OPTIONS = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -8,21 +9,44 @@ const COOKIE_OPTIONS = {
     path: '/'
 };
 const REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
-export class AuthController {
+export class AuthController extends BaseController {
     loginUseCase;
     refreshTokenUseCase;
     getProfileUseCase;
-    constructor(loginUseCase, refreshTokenUseCase, getProfileUseCase) {
+    logoutUseCase;
+    constructor(loginUseCase, refreshTokenUseCase, getProfileUseCase, logoutUseCase) {
+        super();
         this.loginUseCase = loginUseCase;
         this.refreshTokenUseCase = refreshTokenUseCase;
         this.getProfileUseCase = getProfileUseCase;
+        this.logoutUseCase = logoutUseCase;
     }
     login = async (req, res, next) => {
         try {
             const { email, password } = req.body;
-            const { accessToken, refreshToken, user } = await this.loginUseCase.execute({ email, password });
+            const auditContext = this.getAuditContext(req, res);
+            const { accessToken, refreshToken, user } = await this.loginUseCase.execute({ email, password }, auditContext);
             res.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, COOKIE_OPTIONS);
             return res.status(200).json(ResponseHttp.success("Login successful", { accessToken, user }));
+        }
+        catch (error) {
+            next(error);
+        }
+    };
+    logout = async (req, res, next) => {
+        try {
+            const userCtx = res.locals.user;
+            const auditContext = this.getAuditContext(req, res);
+            if (userCtx?.id) {
+                await this.logoutUseCase.execute(userCtx.id, auditContext);
+            }
+            res.clearCookie(REFRESH_TOKEN_COOKIE_NAME, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: 'strict',
+                path: '/'
+            });
+            return res.status(200).json(ResponseHttp.success("Logout successful", null));
         }
         catch (error) {
             next(error);

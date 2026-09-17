@@ -88,7 +88,13 @@ async function main() {
         { action: 'folders:read', description: 'Read folders' },
         { action: 'folders:update', description: 'Update folders' },
         { action: 'folders:delete', description: 'Delete folders' },
+        { action: 'assets:create', description: 'Create assets' },
+        { action: 'assets:read', description: 'Read assets' },
+        { action: 'assets:update', description: 'Update assets' },
+        { action: 'assets:delete', description: 'Delete assets' },
+        { action: 'audit:read', description: 'Read audit logs' },
     ];
+
 
     for (const perm of permissions) {
         await prisma.permission.upsert({

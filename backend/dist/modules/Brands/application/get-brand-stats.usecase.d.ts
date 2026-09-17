@@ -6,6 +6,7 @@ export declare class GetBrandStatsUseCase {
         totalBrands: number;
         totalFolders: number;
         totalImages: number;
+        totalAssets?: number;
     }>;
 }
 //# sourceMappingURL=get-brand-stats.usecase.d.ts.map

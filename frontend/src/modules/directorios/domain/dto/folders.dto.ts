@@ -17,6 +17,7 @@ export interface FolderDto {
     _count?: {
         children: number;
         images: number;
+        assets?: number;
     };
 }
 

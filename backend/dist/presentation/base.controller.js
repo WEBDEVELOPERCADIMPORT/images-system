@@ -11,6 +11,25 @@ class BaseController {
         }
         return res.locals.user;
     }
+    /**
+     * Extracts audit context cleanly from Express Request & Response
+     * without passing Express objects to Use Cases.
+     */
+    getAuditContext(req, res) {
+        const user = res?.locals?.user || req.user;
+        const forwarded = req.headers['x-forwarded-for'];
+        const ip = typeof forwarded === 'string'
+            ? forwarded.split(',')[0]?.trim() || undefined
+            : req.socket?.remoteAddress || req.ip || undefined;
+        const userAgent = req.headers['user-agent'];
+        return {
+            userId: user?.id || null,
+            ip,
+            userAgent,
+            method: req.method,
+            path: req.originalUrl || req.path
+        };
+    }
 }
 export default BaseController;
 //# sourceMappingURL=base.controller.js.map

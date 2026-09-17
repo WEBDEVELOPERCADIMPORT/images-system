@@ -1,16 +1,17 @@
 import type { BrandsRepository } from "../domain/brands.repository.js";
 import type { CreateBrand, GetBrand } from "../domain/brand.entity.js";
-import type { CreateAuditLogUseCase } from "../../Audit/application/create-audit-log.usecase.js";
+import type { AuditLogService } from "../../Audit/application/audit-log.service.js";
+import type { AuditContext } from "../../Audit/domain/audit-log.entity.js";
 import AppError from "@shared/errors/AppError.js";
 import { UniqueConstraintError } from "@shared/db/database/errors/UniqueConstraintError.js";
 
 export class CreateBrandUseCase {
     constructor(
         private readonly brandsRepository: BrandsRepository,
-        private readonly createAuditLogUseCase: CreateAuditLogUseCase
+        private readonly auditLogService: AuditLogService
     ) {}
 
-    async execute(data: CreateBrand, userId?: string | null): Promise<GetBrand> {
+    async execute(data: CreateBrand, context?: AuditContext): Promise<GetBrand> {
         try {
             const existing = await this.brandsRepository.findByName(data.name.trim());
             if (existing) {
@@ -22,13 +23,17 @@ export class CreateBrandUseCase {
                 description: data.description?.trim() || null
             });
 
-            await this.createAuditLogUseCase.execute({
-                userId,
+            await this.auditLogService.record({
+                userId: context?.userId,
                 action: 'CREATE',
-                resource: 'BRAND',
+                resource: 'brand',
                 resourceId: brand.id,
-                details: { name: brand.name }
-            }).catch(err => console.error("Failed to create audit log for brand create", err));
+                context,
+                details: {
+                    name: brand.name,
+                    description: brand.description
+                }
+            });
 
             return brand;
         } catch (error) {
@@ -42,3 +47,4 @@ export class CreateBrandUseCase {
         }
     }
 }
+

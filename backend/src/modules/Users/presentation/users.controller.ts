@@ -25,17 +25,19 @@ export class UsersController extends BaseController {
     create = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const data = req.body;
-            const user = await this.createUserUseCase.execute(data);
+            const auditContext = this.getAuditContext(req, res);
+            const user = await this.createUserUseCase.execute(data, auditContext);
             return res.status(201).json(ResponseHttp.success("User created successfully", user));
         } catch (error) {
             next(error);
         }
-    }
+    };
 
     update = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const id = req.params.id as string;
             const data = req.body;
+            const auditContext = this.getAuditContext(req, res);
             
             let passwordHash = undefined;
             if (data.passwordRaw) {
@@ -47,12 +49,12 @@ export class UsersController extends BaseController {
                 passwordHash
             };
 
-            const user = await this.updateUserUseCase.execute(id, updateData);
+            const user = await this.updateUserUseCase.execute(id, updateData, auditContext);
             return res.status(200).json(ResponseHttp.success("User updated successfully", user));
         } catch (error) {
             next(error);
         }
-    }
+    };
 
     list = async (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -66,7 +68,7 @@ export class UsersController extends BaseController {
         } catch (error) {
             next(error);
         }
-    }
+    };
 
     listRoles = async (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -75,25 +77,28 @@ export class UsersController extends BaseController {
         } catch (error) {
             next(error);
         }
-    }
+    };
 
     disable = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const id = req.params.id as string;
-            const user = await this.disableUserUseCase.execute(id);
+            const auditContext = this.getAuditContext(req, res);
+            const user = await this.disableUserUseCase.execute(id, auditContext);
             return res.status(200).json(ResponseHttp.success("User disabled successfully", user));
         } catch (error) {
             next(error);
         }
-    }
+    };
 
     delete = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const id = req.params.id as string;
-            const user = await this.deleteUserUseCase.execute(id);
+            const auditContext = this.getAuditContext(req, res);
+            const user = await this.deleteUserUseCase.execute(id, auditContext);
             return res.status(200).json(ResponseHttp.success("User deleted successfully", user));
         } catch (error) {
             next(error);
         }
-    }
+    };
+
 }

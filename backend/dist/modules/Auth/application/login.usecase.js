@@ -3,12 +3,14 @@ export class LoginUseCase {
     authRepository;
     jwtProvider;
     hashProvider;
-    constructor(authRepository, jwtProvider, hashProvider) {
+    auditLogService;
+    constructor(authRepository, jwtProvider, hashProvider, auditLogService) {
         this.authRepository = authRepository;
         this.jwtProvider = jwtProvider;
         this.hashProvider = hashProvider;
+        this.auditLogService = auditLogService;
     }
-    async execute(data) {
+    async execute(data, context) {
         const { email, password } = data;
         const user = await this.authRepository.findByEmail(email);
         if (!user) {
@@ -35,6 +37,18 @@ export class LoginUseCase {
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 7);
         await this.authRepository.upsertSession(user.id, refreshToken, expiresAt);
+        // Record LOGIN Audit Log
+        await this.auditLogService.record({
+            userId: user.id,
+            action: "LOGIN",
+            resource: "auth",
+            resourceId: user.id,
+            context,
+            details: {
+                email: user.email,
+                loginMethod: "password"
+            }
+        });
         return {
             accessToken,
             refreshToken,

@@ -21,6 +21,7 @@ export interface UpdateFolder {
 export interface FolderCounts {
     children: number;
     images: number;
+    assets?: number;
 }
 export interface GetFolder {
     id: string;

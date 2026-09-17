@@ -1,16 +1,18 @@
 import type { FoldersRepository } from "../domain/folders.repository.js";
 import type { UpdateFolder, GetFolder } from "../domain/folder.entity.js";
-import type { CreateAuditLogUseCase } from "../../Audit/application/create-audit-log.usecase.js";
+import type { AuditLogService } from "../../Audit/application/audit-log.service.js";
+import type { AuditContext } from "../../Audit/domain/audit-log.entity.js";
 import AppError from "@shared/errors/AppError.js";
 import { UniqueConstraintError } from "@shared/db/database/errors/UniqueConstraintError.js";
 
 export class UpdateFolderUseCase {
     constructor(
         private readonly foldersRepository: FoldersRepository,
-        private readonly createAuditLogUseCase: CreateAuditLogUseCase
+        private readonly auditLogService: AuditLogService
     ) { }
 
-    async execute(id: string, data: UpdateFolder, userId?: string | null): Promise<GetFolder> {
+    async execute(id: string, data: UpdateFolder, context?: AuditContext): Promise<GetFolder> {
+
         try {
             const existing = await this.foldersRepository.findById(id);
             if (!existing) {
@@ -58,15 +60,26 @@ export class UpdateFolderUseCase {
                 parentId: data.parentId !== undefined ? newParentId : undefined
             });
 
-            await this.createAuditLogUseCase.execute({
-                userId,
+            await this.auditLogService.record({
+                userId: context?.userId,
                 action: 'UPDATE',
-                resource: 'FOLDER',
+                resource: 'folder',
                 resourceId: updated.id,
-                details: { previous: { name: existing.name, parentId: existing.parentId }, updated: { name: updated.name, parentId: updated.parentId } }
-            }).catch(err => console.error("Failed to create audit log for folder update", err));
+                context,
+                before: {
+                    name: existing.name,
+                    description: existing.description,
+                    parentId: existing.parentId
+                },
+                after: {
+                    name: updated.name,
+                    description: updated.description,
+                    parentId: updated.parentId
+                }
+            });
 
             return updated;
+
         } catch (error) {
             if (error instanceof UniqueConstraintError) {
                 throw new AppError("A folder with this name already exists in the destination", "FOLDER_NAME_TAKEN", 400);

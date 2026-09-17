@@ -11,6 +11,7 @@ type PrismaFolderFull = PrismaFolder & {
     } | null;
     _count?: {
         children?: number;
+        assets?: number;
         images?: number;
     };
 };

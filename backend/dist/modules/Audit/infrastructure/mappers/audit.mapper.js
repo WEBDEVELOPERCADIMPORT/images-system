@@ -7,7 +7,14 @@ export class AuditMapper {
             resource: log.resource,
             resourceId: log.resourceId,
             details: log.details,
-            createdAt: log.createdAt
+            createdAt: log.createdAt,
+            user: log.user ? {
+                id: log.user.id,
+                firstName: log.user.firstName,
+                lastName: log.user.lastName,
+                email: log.user.email,
+                avatarUrl: log.user.avatarUrl ?? null
+            } : null
         };
     }
 }

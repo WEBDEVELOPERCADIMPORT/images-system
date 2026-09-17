@@ -3,7 +3,8 @@ import type { GetUser } from "../domain/user.entity.js";
 import AppError from "@shared/errors/AppError.js";
 import type { HashProvider } from "@shared/domain/hash.provider.js";
 import { UniqueConstraintError } from "@shared/db/database/errors/UniqueConstraintError.js";
-import type { CreateAuditLogUseCase } from "../../Audit/application/create-audit-log.usecase.js";
+import type { AuditLogService } from "../../Audit/application/audit-log.service.js";
+import type { AuditContext } from "../../Audit/domain/audit-log.entity.js";
 
 interface CreateUserRequest {
     email: string;
@@ -17,10 +18,10 @@ export class CreateUserUseCase {
     constructor(
         private readonly usersRepository: UsersRepository,
         private readonly hashProvider: HashProvider,
-        private readonly createAuditLogUseCase: CreateAuditLogUseCase
+        private readonly auditLogService: AuditLogService
     ) {}
 
-    async execute(data: CreateUserRequest): Promise<GetUser> {
+    async execute(data: CreateUserRequest, context?: AuditContext): Promise<GetUser> {
         try {
             const existingUser = await this.usersRepository.findByEmail(data.email);
             if (existingUser) {
@@ -37,12 +38,20 @@ export class CreateUserUseCase {
                 roles: data.roles
             });
 
-            await this.createAuditLogUseCase.execute({
+            await this.auditLogService.record({
+                userId: context?.userId,
                 action: 'CREATE',
-                resource: 'USER',
+                resource: 'user',
                 resourceId: user.id,
-                details: { email: user.email }
-            }).catch(err => console.error("Failed to create audit log for user creation", err));
+                context,
+                details: {
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    roles: user.roles,
+                    isActive: user.isActive
+                }
+            });
 
             return user;
         } catch (error) {
@@ -56,3 +65,4 @@ export class CreateUserUseCase {
         }
     }
 }
+

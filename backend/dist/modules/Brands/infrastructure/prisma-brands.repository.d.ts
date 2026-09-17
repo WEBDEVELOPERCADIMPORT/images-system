@@ -20,6 +20,7 @@ export declare class PrismaBrandsRepository implements BrandsRepository {
         totalBrands: number;
         totalFolders: number;
         totalImages: number;
+        totalAssets?: number;
     }>;
 }
 //# sourceMappingURL=prisma-brands.repository.d.ts.map

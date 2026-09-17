@@ -4,7 +4,7 @@ import AppError from "@shared/errors/AppError.js";
 export class GetBrandStatsUseCase {
     constructor(private readonly brandsRepository: BrandsRepository) {}
 
-    async execute(): Promise<{ totalBrands: number; totalFolders: number; totalImages: number }> {
+    async execute(): Promise<{ totalBrands: number; totalFolders: number; totalImages: number; totalAssets?: number }> {
         try {
             return await this.brandsRepository.getStats();
         } catch (error) {

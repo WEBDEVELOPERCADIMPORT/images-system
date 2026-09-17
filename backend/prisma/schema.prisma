@@ -29,7 +29,7 @@ model User {
   passwordHash String   @map("password_hash")
   firstName    String   @map("first_name")
   lastName     String   @map("last_name")
-  avatarUrl    String   @map("avatar_url")
+  avatarUrl    String?  @map("avatar_url")
   isActive     Boolean  @default(true) @map("is_active")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
@@ -120,7 +120,7 @@ model Brand {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   folders Folder[]
-  images  Image[]
+  assets  Asset[]
 
   @@map("brands")
 }
@@ -138,32 +138,11 @@ model Folder {
   brand    Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
   parent   Folder?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
   children Folder[] @relation("FolderHierarchy")
-  images   Image[]
+  assets   Asset[]
 
   // Evita duplicar nombres de carpetas en un mismo nivel dentro de una marca
   @@unique([name, brandId, parentId])
   @@map("folders")
-}
-
-model Image {
-  id          String   @id @default(uuid())
-  name        String
-  description String?  @db.Text
-  url         String   @db.VarChar(2048)
-  sku         String?  @db.VarChar(100)
-  brandId     String   @map("brand_id")
-  folderId    String?  @map("folder_id")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  // Relaciones
-  brand  Brand   @relation(fields: [brandId], references: [id], onDelete: Cascade)
-  folder Folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
-
-  @@index([sku])
-  @@index([brandId])
-  @@index([folderId])
-  @@map("images")
 }
 
 // ------------------------------------------------------
@@ -182,4 +161,48 @@ model AuditLog {
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("audit_logs")
+}
+
+model Asset {
+  id          String    @id @default(uuid())
+  name        String // Nombre descriptivo o título
+  description String?   @db.Text
+  url         String    @db.VarChar(2048)
+  sku         String?   @db.VarChar(100) // SKU o código de referencia comercial
+  type        AssetType @default(OTHER) // Clasificación: IMAGE, DOCUMENT, etc.
+
+  // Metadatos técnicos del archivo
+  fileName  String  @map("file_name") // Nombre original con extensión (ej: "catalogo_2026.pdf")
+  mimeType  String  @map("mime_type") // ej: "image/png", "application/pdf"
+  sizeBytes BigInt  @map("size_bytes") // Tamaño en bytes
+  extension String? @db.VarChar(10) // ej: "jpg", "pdf", "docx"
+  metadata  Json? // Metadatos extra (ej: dimensiones si es imagen, páginas si es PDF, duración si es video)
+
+  brandId   String   @map("brand_id")
+  folderId  String?  @map("folder_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  brand  Brand   @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  folder Folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  @@index([sku])
+  @@index([type])
+  @@index([brandId])
+  @@index([folderId])
+  @@map("assets")
+}
+
+// ------------------------------------------------------
+// ENUMS
+// ------------------------------------------------------
+
+enum AssetType {
+  IMAGE
+  DOCUMENT
+  VIDEO
+  AUDIO
+  ARCHIVE // .zip, .rar, etc.
+  OTHER
 }

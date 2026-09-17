@@ -7,14 +7,14 @@ import { UpdateBrandUseCase } from "./application/update-brand.usecase.js";
 import { DeleteBrandUseCase } from "./application/delete-brand.usecase.js";
 import { GetBrandStatsUseCase } from "./application/get-brand-stats.usecase.js";
 import { BrandsController } from "./presentation/brands.controller.js";
-import { createAuditLogUseCase } from "../Audit/audit.module.js";
+import { auditLogService } from "../Audit/audit.module.js";
 const prisma = new PrismaClient();
 export const brandsRepository = new PrismaBrandsRepository(prisma);
-export const createBrandUseCase = new CreateBrandUseCase(brandsRepository, createAuditLogUseCase);
+export const createBrandUseCase = new CreateBrandUseCase(brandsRepository, auditLogService);
 export const listBrandsUseCase = new ListBrandsUseCase(brandsRepository);
 export const getBrandUseCase = new GetBrandUseCase(brandsRepository);
-export const updateBrandUseCase = new UpdateBrandUseCase(brandsRepository, createAuditLogUseCase);
-export const deleteBrandUseCase = new DeleteBrandUseCase(brandsRepository, createAuditLogUseCase);
+export const updateBrandUseCase = new UpdateBrandUseCase(brandsRepository, auditLogService);
+export const deleteBrandUseCase = new DeleteBrandUseCase(brandsRepository, auditLogService);
 export const getBrandStatsUseCase = new GetBrandStatsUseCase(brandsRepository);
 export const brandsController = new BrandsController(createBrandUseCase, listBrandsUseCase, getBrandUseCase, updateBrandUseCase, deleteBrandUseCase, getBrandStatsUseCase);
 //# sourceMappingURL=brands.module.js.map

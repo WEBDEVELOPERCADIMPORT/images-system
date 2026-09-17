@@ -94,5 +94,10 @@ export class PrismaAuthRespository {
             createdAt: sessionDb.createdAt
         };
     }
+    async deleteSession(userId) {
+        await this.db.userSession.deleteMany({
+            where: { userId }
+        });
+    }
 }
 //# sourceMappingURL=prisma-auth.repository.js.map

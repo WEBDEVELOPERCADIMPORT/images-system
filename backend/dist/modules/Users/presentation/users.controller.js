@@ -21,7 +21,8 @@ export class UsersController extends BaseController {
     create = async (req, res, next) => {
         try {
             const data = req.body;
-            const user = await this.createUserUseCase.execute(data);
+            const auditContext = this.getAuditContext(req, res);
+            const user = await this.createUserUseCase.execute(data, auditContext);
             return res.status(201).json(ResponseHttp.success("User created successfully", user));
         }
         catch (error) {
@@ -32,6 +33,7 @@ export class UsersController extends BaseController {
         try {
             const id = req.params.id;
             const data = req.body;
+            const auditContext = this.getAuditContext(req, res);
             let passwordHash = undefined;
             if (data.passwordRaw) {
                 passwordHash = await this.hashProvider.hash(data.passwordRaw);
@@ -40,7 +42,7 @@ export class UsersController extends BaseController {
                 ...data,
                 passwordHash
             };
-            const user = await this.updateUserUseCase.execute(id, updateData);
+            const user = await this.updateUserUseCase.execute(id, updateData, auditContext);
             return res.status(200).json(ResponseHttp.success("User updated successfully", user));
         }
         catch (error) {
@@ -72,7 +74,8 @@ export class UsersController extends BaseController {
     disable = async (req, res, next) => {
         try {
             const id = req.params.id;
-            const user = await this.disableUserUseCase.execute(id);
+            const auditContext = this.getAuditContext(req, res);
+            const user = await this.disableUserUseCase.execute(id, auditContext);
             return res.status(200).json(ResponseHttp.success("User disabled successfully", user));
         }
         catch (error) {
@@ -82,7 +85,8 @@ export class UsersController extends BaseController {
     delete = async (req, res, next) => {
         try {
             const id = req.params.id;
-            const user = await this.deleteUserUseCase.execute(id);
+            const auditContext = this.getAuditContext(req, res);
+            const user = await this.deleteUserUseCase.execute(id, auditContext);
             return res.status(200).json(ResponseHttp.success("User deleted successfully", user));
         }
         catch (error) {

@@ -2,12 +2,12 @@ import AppError from "../../../shared/errors/AppError.js";
 import { UniqueConstraintError } from "../../../shared/db/database/errors/UniqueConstraintError.js";
 export class UpdateBrandUseCase {
     brandsRepository;
-    createAuditLogUseCase;
-    constructor(brandsRepository, createAuditLogUseCase) {
+    auditLogService;
+    constructor(brandsRepository, auditLogService) {
         this.brandsRepository = brandsRepository;
-        this.createAuditLogUseCase = createAuditLogUseCase;
+        this.auditLogService = auditLogService;
     }
-    async execute(id, data, userId) {
+    async execute(id, data, context) {
         try {
             const existing = await this.brandsRepository.findById(id);
             if (!existing) {
@@ -23,13 +23,21 @@ export class UpdateBrandUseCase {
                 name: data.name ? data.name.trim() : undefined,
                 description: data.description !== undefined ? (data.description ? data.description.trim() : null) : undefined
             });
-            await this.createAuditLogUseCase.execute({
-                userId,
+            await this.auditLogService.record({
+                userId: context?.userId,
                 action: 'UPDATE',
-                resource: 'BRAND',
+                resource: 'brand',
                 resourceId: updatedBrand.id,
-                details: { previous: { name: existing.name }, updated: { name: updatedBrand.name } }
-            }).catch(err => console.error("Failed to create audit log for brand update", err));
+                context,
+                before: {
+                    name: existing.name,
+                    description: existing.description
+                },
+                after: {
+                    name: updatedBrand.name,
+                    description: updatedBrand.description
+                }
+            });
             return updatedBrand;
         }
         catch (error) {

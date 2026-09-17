@@ -18,9 +18,9 @@ export class BrandsController extends BaseController {
     }
     create = async (req, res, next) => {
         try {
-            const user = req.user;
             const data = req.body;
-            const brand = await this.createBrandUseCase.execute(data, user?.id);
+            const auditContext = this.getAuditContext(req, res);
+            const brand = await this.createBrandUseCase.execute(data, auditContext);
             return res.status(201).json(ResponseHttp.success("Brand created successfully", brand));
         }
         catch (error) {
@@ -57,10 +57,10 @@ export class BrandsController extends BaseController {
     };
     update = async (req, res, next) => {
         try {
-            const user = req.user;
             const id = req.params.id;
             const data = req.body;
-            const brand = await this.updateBrandUseCase.execute(id, data, user?.id);
+            const auditContext = this.getAuditContext(req, res);
+            const brand = await this.updateBrandUseCase.execute(id, data, auditContext);
             return res.status(200).json(ResponseHttp.success("Brand updated successfully", brand));
         }
         catch (error) {
@@ -69,9 +69,9 @@ export class BrandsController extends BaseController {
     };
     delete = async (req, res, next) => {
         try {
-            const user = req.user;
             const id = req.params.id;
-            await this.deleteBrandUseCase.execute(id, user?.id);
+            const auditContext = this.getAuditContext(req, res);
+            await this.deleteBrandUseCase.execute(id, auditContext);
             return res.status(200).json(ResponseHttp.success("Brand deleted successfully", null));
         }
         catch (error) {

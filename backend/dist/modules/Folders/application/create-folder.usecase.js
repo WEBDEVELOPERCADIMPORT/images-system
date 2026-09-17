@@ -3,13 +3,13 @@ import { UniqueConstraintError } from "../../../shared/db/database/errors/Unique
 export class CreateFolderUseCase {
     foldersRepository;
     brandsRepository;
-    createAuditLogUseCase;
-    constructor(foldersRepository, brandsRepository, createAuditLogUseCase) {
+    auditLogService;
+    constructor(foldersRepository, brandsRepository, auditLogService) {
         this.foldersRepository = foldersRepository;
         this.brandsRepository = brandsRepository;
-        this.createAuditLogUseCase = createAuditLogUseCase;
+        this.auditLogService = auditLogService;
     }
-    async execute(data, userId) {
+    async execute(data, context) {
         try {
             // Validate Brand exists
             const brand = await this.brandsRepository.findById(data.brandId);
@@ -39,13 +39,19 @@ export class CreateFolderUseCase {
                 brandId: data.brandId,
                 parentId
             });
-            await this.createAuditLogUseCase.execute({
-                userId,
+            await this.auditLogService.record({
+                userId: context?.userId,
                 action: 'CREATE',
-                resource: 'FOLDER',
+                resource: 'folder',
                 resourceId: folder.id,
-                details: { name: folder.name, brandId: folder.brandId, parentId: folder.parentId }
-            }).catch(err => console.error("Failed to create audit log for folder create", err));
+                context,
+                details: {
+                    name: folder.name,
+                    brandId: folder.brandId,
+                    parentId: folder.parentId,
+                    description: folder.description
+                }
+            });
             return folder;
         }
         catch (error) {

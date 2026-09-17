@@ -1,7 +1,8 @@
 import type { FoldersRepository } from "../domain/folders.repository.js";
 import type { BrandsRepository } from "../../Brands/domain/brands.repository.js";
 import type { CreateFolder, GetFolder } from "../domain/folder.entity.js";
-import type { CreateAuditLogUseCase } from "../../Audit/application/create-audit-log.usecase.js";
+import type { AuditLogService } from "../../Audit/application/audit-log.service.js";
+import type { AuditContext } from "../../Audit/domain/audit-log.entity.js";
 import AppError from "@shared/errors/AppError.js";
 import { UniqueConstraintError } from "@shared/db/database/errors/UniqueConstraintError.js";
 
@@ -9,10 +10,10 @@ export class CreateFolderUseCase {
     constructor(
         private readonly foldersRepository: FoldersRepository,
         private readonly brandsRepository: BrandsRepository,
-        private readonly createAuditLogUseCase: CreateAuditLogUseCase
+        private readonly auditLogService: AuditLogService
     ) {}
 
-    async execute(data: CreateFolder, userId?: string | null): Promise<GetFolder> {
+    async execute(data: CreateFolder, context?: AuditContext): Promise<GetFolder> {
         try {
             // Validate Brand exists
             const brand = await this.brandsRepository.findById(data.brandId);
@@ -47,15 +48,22 @@ export class CreateFolderUseCase {
                 parentId
             });
 
-            await this.createAuditLogUseCase.execute({
-                userId,
+            await this.auditLogService.record({
+                userId: context?.userId,
                 action: 'CREATE',
-                resource: 'FOLDER',
+                resource: 'folder',
                 resourceId: folder.id,
-                details: { name: folder.name, brandId: folder.brandId, parentId: folder.parentId }
-            }).catch(err => console.error("Failed to create audit log for folder create", err));
+                context,
+                details: {
+                    name: folder.name,
+                    brandId: folder.brandId,
+                    parentId: folder.parentId,
+                    description: folder.description
+                }
+            });
 
             return folder;
+
         } catch (error) {
             if (error instanceof UniqueConstraintError) {
                 throw new AppError("A folder with this name already exists in this directory", "FOLDER_NAME_TAKEN", 400);

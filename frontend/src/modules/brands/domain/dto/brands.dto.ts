@@ -7,6 +7,7 @@ export interface BrandDto {
     _count?: {
         folders: number;
         images: number;
+        assets?: number;
     };
 }
 
@@ -24,4 +25,5 @@ export interface BrandStatsDto {
     totalBrands: number;
     totalFolders: number;
     totalImages: number;
+    totalAssets?: number;
 }

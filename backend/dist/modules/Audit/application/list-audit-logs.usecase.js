@@ -4,9 +4,11 @@ export class ListAuditLogsUseCase {
     constructor(auditRepository) {
         this.auditRepository = auditRepository;
     }
-    async execute() {
+    async execute(params = {}) {
         try {
-            return await this.auditRepository.findAll();
+            const page = params.page || 1;
+            const limit = params.limit || 10;
+            return await this.auditRepository.findAll(page, limit, params.filters);
         }
         catch (error) {
             if (error instanceof AppError) {

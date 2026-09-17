@@ -5,7 +5,9 @@ import { brandsRoutes } from '../../modules/brands/presentation/brands.routes';
 import { directoriosRoutes } from '../../modules/directorios/presentation/directorios.routes';
 import { usersRoutes } from '../../modules/users/presentation/users.routes';
 import { profileRoutes } from '../../modules/profile/presentation/profile.routes';
+import { auditRoutes } from '../../modules/audit/presentation/audit.routes';
 import ProtectedRoute from './ProtectedRoute';
+
 import { FullPageLoader } from '../../shared/components/loaders';
 import { AccessDeniedPage } from '../../shared/pages';
 import DashboardPage from '../../shared/pages/Dashboard.page';
@@ -67,9 +69,14 @@ export const appRouter = createBrowserRouter([
                         children: [...usersRoutes],
                     },
                     {
+                        path: 'audit-logs',
+                        children: [...auditRoutes],
+                    },
+                    {
                         path: 'profile',
                         children: [...profileRoutes],
                     },
+
                 ],
             },
         ],

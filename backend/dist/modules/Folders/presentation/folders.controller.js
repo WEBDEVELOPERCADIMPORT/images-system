@@ -16,9 +16,9 @@ export class FoldersController extends BaseController {
     }
     create = async (req, res, next) => {
         try {
-            const user = req.user;
             const data = req.body;
-            const folder = await this.createFolderUseCase.execute(data, user?.id);
+            const auditContext = this.getAuditContext(req, res);
+            const folder = await this.createFolderUseCase.execute(data, auditContext);
             return res.status(201).json(ResponseHttp.success("Folder created successfully", folder));
         }
         catch (error) {
@@ -60,10 +60,10 @@ export class FoldersController extends BaseController {
     };
     update = async (req, res, next) => {
         try {
-            const user = req.user;
             const id = req.params.id;
             const data = req.body;
-            const folder = await this.updateFolderUseCase.execute(id, data, user?.id);
+            const auditContext = this.getAuditContext(req, res);
+            const folder = await this.updateFolderUseCase.execute(id, data, auditContext);
             return res.status(200).json(ResponseHttp.success("Folder updated successfully", folder));
         }
         catch (error) {
@@ -72,9 +72,9 @@ export class FoldersController extends BaseController {
     };
     delete = async (req, res, next) => {
         try {
-            const user = req.user;
             const id = req.params.id;
-            await this.deleteFolderUseCase.execute(id, user?.id);
+            const auditContext = this.getAuditContext(req, res);
+            await this.deleteFolderUseCase.execute(id, auditContext);
             return res.status(200).json(ResponseHttp.success("Folder deleted successfully", null));
         }
         catch (error) {

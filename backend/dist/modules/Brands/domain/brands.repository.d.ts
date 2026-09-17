@@ -16,6 +16,7 @@ export interface BrandsRepository {
         totalBrands: number;
         totalFolders: number;
         totalImages: number;
+        totalAssets?: number;
     }>;
 }
 //# sourceMappingURL=brands.repository.d.ts.map

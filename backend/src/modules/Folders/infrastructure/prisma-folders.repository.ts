@@ -19,7 +19,7 @@ export class PrismaFoldersRepository implements FoldersRepository {
                 include: {
                     brand: { select: { id: true, name: true } },
                     parent: { select: { id: true, name: true } },
-                    _count: { select: { children: true, images: true } }
+                    _count: { select: { children: true, assets: true } }
                 }
             });
             return FoldersMapper.toDomain(folder);
@@ -40,7 +40,7 @@ export class PrismaFoldersRepository implements FoldersRepository {
                 include: {
                     brand: { select: { id: true, name: true } },
                     parent: { select: { id: true, name: true } },
-                    _count: { select: { children: true, images: true } }
+                    _count: { select: { children: true, assets: true } }
                 }
             });
             return FoldersMapper.toDomain(folder);
@@ -56,7 +56,7 @@ export class PrismaFoldersRepository implements FoldersRepository {
                 include: {
                     brand: { select: { id: true, name: true } },
                     parent: { select: { id: true, name: true } },
-                    _count: { select: { children: true, images: true } }
+                    _count: { select: { children: true, assets: true } }
                 }
             });
             return folder ? FoldersMapper.toDomain(folder) : null;
@@ -76,7 +76,7 @@ export class PrismaFoldersRepository implements FoldersRepository {
                 include: {
                     brand: { select: { id: true, name: true } },
                     parent: { select: { id: true, name: true } },
-                    _count: { select: { children: true, images: true } }
+                    _count: { select: { children: true, assets: true } }
                 }
             });
             return folder ? FoldersMapper.toDomain(folder) : null;
@@ -119,7 +119,7 @@ export class PrismaFoldersRepository implements FoldersRepository {
                     include: {
                         brand: { select: { id: true, name: true } },
                         parent: { select: { id: true, name: true } },
-                        _count: { select: { children: true, images: true } }
+                        _count: { select: { children: true, assets: true } }
                     }
                 }),
                 this.prisma.folder.count({ where: whereClause })
@@ -145,7 +145,7 @@ export class PrismaFoldersRepository implements FoldersRepository {
                 include: {
                     brand: { select: { id: true, name: true } },
                     parent: { select: { id: true, name: true } },
-                    _count: { select: { children: true, images: true } }
+                    _count: { select: { children: true, assets: true } }
                 }
             });
             return folders.map(FoldersMapper.toDomain);

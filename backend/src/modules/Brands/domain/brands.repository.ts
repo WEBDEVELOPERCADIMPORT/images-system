@@ -12,5 +12,5 @@ export interface BrandsRepository {
         filters?: { q?: string }
     ): Promise<{ data: GetBrand[]; total: number }>;
     delete(id: string): Promise<void>;
-    getStats(): Promise<{ totalBrands: number; totalFolders: number; totalImages: number }>;
+    getStats(): Promise<{ totalBrands: number; totalFolders: number; totalImages: number; totalAssets?: number }>;
 }

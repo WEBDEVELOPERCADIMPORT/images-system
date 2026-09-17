@@ -8,6 +8,7 @@ const authMiddleware = new AuthMiddleware();
 const router = Router();
 router.post('/login', validatedMiddleware.validateBody(loginSchema), authController.login);
 router.post('/refresh', authController.refresh);
+router.post('/logout', authMiddleware.routeProtect, authController.logout);
 router.get('/me', authMiddleware.routeProtect, authController.getProfile);
 export default router;
 //# sourceMappingURL=auth.routes.js.map

@@ -1,0 +1,42 @@
+import { Router } from "express";
+import { assetsController } from "../assets.module.js";
+import { AuthMiddleware } from "@app/middleware/Auth.middleware.js";
+import { ValidatedMiddleware } from "@app/middleware/Validated.middleware.js";
+import { MulterUploadProvider } from "@shared/infrastructure/multer.provider.js";
+import {
+    AssetIdSchema,
+    CreateAssetBodySchema,
+    UpdateAssetBodySchema,
+    ListAssetsQuerySchema,
+} from "./validators/assets.schemas.js";
+
+const router = Router();
+const authMiddleware = new AuthMiddleware();
+const validatedMiddleware = new ValidatedMiddleware();
+
+// Protect all asset routes
+router.use(authMiddleware.routeProtect);
+
+router.get("/", validatedMiddleware.validateQuery(ListAssetsQuerySchema), assetsController.list);
+router.get("/:id", validatedMiddleware.validateParams(AssetIdSchema), assetsController.getById);
+
+// POST: requires a file
+router.post(
+    "/",
+    MulterUploadProvider.single("file", true),
+    validatedMiddleware.validateBody(CreateAssetBodySchema),
+    assetsController.create
+);
+
+// PATCH: file is optional (if provided, replaces physical object)
+router.patch(
+    "/:id",
+    validatedMiddleware.validateParams(AssetIdSchema),
+    MulterUploadProvider.single("file", false),
+    validatedMiddleware.validateBody(UpdateAssetBodySchema),
+    assetsController.update
+);
+
+router.delete("/:id", validatedMiddleware.validateParams(AssetIdSchema), assetsController.delete);
+
+export default router;

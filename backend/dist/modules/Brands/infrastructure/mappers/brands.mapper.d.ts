@@ -3,6 +3,7 @@ import type { GetBrand } from "../../domain/brand.entity.js";
 type PrismaBrandWithCount = PrismaBrand & {
     _count?: {
         folders?: number;
+        assets?: number;
         images?: number;
     };
 };

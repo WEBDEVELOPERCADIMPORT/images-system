@@ -1,16 +1,17 @@
 import type { BrandsRepository } from "../domain/brands.repository.js";
 import type { UpdateBrand, GetBrand } from "../domain/brand.entity.js";
-import type { CreateAuditLogUseCase } from "../../Audit/application/create-audit-log.usecase.js";
+import type { AuditLogService } from "../../Audit/application/audit-log.service.js";
+import type { AuditContext } from "../../Audit/domain/audit-log.entity.js";
 import AppError from "@shared/errors/AppError.js";
 import { UniqueConstraintError } from "@shared/db/database/errors/UniqueConstraintError.js";
 
 export class UpdateBrandUseCase {
     constructor(
         private readonly brandsRepository: BrandsRepository,
-        private readonly createAuditLogUseCase: CreateAuditLogUseCase
+        private readonly auditLogService: AuditLogService
     ) {}
 
-    async execute(id: string, data: UpdateBrand, userId?: string | null): Promise<GetBrand> {
+    async execute(id: string, data: UpdateBrand, context?: AuditContext): Promise<GetBrand> {
         try {
             const existing = await this.brandsRepository.findById(id);
             if (!existing) {
@@ -29,13 +30,21 @@ export class UpdateBrandUseCase {
                 description: data.description !== undefined ? (data.description ? data.description.trim() : null) : undefined
             });
 
-            await this.createAuditLogUseCase.execute({
-                userId,
+            await this.auditLogService.record({
+                userId: context?.userId,
                 action: 'UPDATE',
-                resource: 'BRAND',
+                resource: 'brand',
                 resourceId: updatedBrand.id,
-                details: { previous: { name: existing.name }, updated: { name: updatedBrand.name } }
-            }).catch(err => console.error("Failed to create audit log for brand update", err));
+                context,
+                before: {
+                    name: existing.name,
+                    description: existing.description
+                },
+                after: {
+                    name: updatedBrand.name,
+                    description: updatedBrand.description
+                }
+            });
 
             return updatedBrand;
         } catch (error) {
@@ -49,3 +58,4 @@ export class UpdateBrandUseCase {
         }
     }
 }
+

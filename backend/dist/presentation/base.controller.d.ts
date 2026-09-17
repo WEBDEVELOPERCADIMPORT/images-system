@@ -1,4 +1,5 @@
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
+import type { AuditContext } from '../modules/Audit/domain/audit-log.entity.js';
 declare abstract class BaseController {
     constructor();
     /**
@@ -6,6 +7,11 @@ declare abstract class BaseController {
      * Centralizes the security of business data.
      */
     protected obtenerEntorno(res: Response): any;
+    /**
+     * Extracts audit context cleanly from Express Request & Response
+     * without passing Express objects to Use Cases.
+     */
+    protected getAuditContext(req: Request, res?: Response): AuditContext;
 }
 export default BaseController;
 //# sourceMappingURL=base.controller.d.ts.map

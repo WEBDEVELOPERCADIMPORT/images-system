@@ -2,12 +2,12 @@ import AppError from "../../../shared/errors/AppError.js";
 import { UniqueConstraintError } from "../../../shared/db/database/errors/UniqueConstraintError.js";
 export class UpdateFolderUseCase {
     foldersRepository;
-    createAuditLogUseCase;
-    constructor(foldersRepository, createAuditLogUseCase) {
+    auditLogService;
+    constructor(foldersRepository, auditLogService) {
         this.foldersRepository = foldersRepository;
-        this.createAuditLogUseCase = createAuditLogUseCase;
+        this.auditLogService = auditLogService;
     }
-    async execute(id, data, userId) {
+    async execute(id, data, context) {
         try {
             const existing = await this.foldersRepository.findById(id);
             if (!existing) {
@@ -47,13 +47,23 @@ export class UpdateFolderUseCase {
                 description: data.description !== undefined ? (data.description ? data.description.trim() : null) : undefined,
                 parentId: data.parentId !== undefined ? newParentId : undefined
             });
-            await this.createAuditLogUseCase.execute({
-                userId,
+            await this.auditLogService.record({
+                userId: context?.userId,
                 action: 'UPDATE',
-                resource: 'FOLDER',
+                resource: 'folder',
                 resourceId: updated.id,
-                details: { previous: { name: existing.name, parentId: existing.parentId }, updated: { name: updated.name, parentId: updated.parentId } }
-            }).catch(err => console.error("Failed to create audit log for folder update", err));
+                context,
+                before: {
+                    name: existing.name,
+                    description: existing.description,
+                    parentId: existing.parentId
+                },
+                after: {
+                    name: updated.name,
+                    description: updated.description,
+                    parentId: updated.parentId
+                }
+            });
             return updated;
         }
         catch (error) {

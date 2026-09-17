@@ -109,4 +109,10 @@ export class PrismaAuthRespository implements AuthRepository {
             createdAt: sessionDb.createdAt
         };
     }
+
+    async deleteSession(userId: AuthUser["id"]): Promise<void> {
+        await this.db.userSession.deleteMany({
+            where: { userId }
+        });
+    }
 }

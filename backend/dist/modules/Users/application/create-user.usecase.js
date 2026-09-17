@@ -3,13 +3,13 @@ import { UniqueConstraintError } from "../../../shared/db/database/errors/Unique
 export class CreateUserUseCase {
     usersRepository;
     hashProvider;
-    createAuditLogUseCase;
-    constructor(usersRepository, hashProvider, createAuditLogUseCase) {
+    auditLogService;
+    constructor(usersRepository, hashProvider, auditLogService) {
         this.usersRepository = usersRepository;
         this.hashProvider = hashProvider;
-        this.createAuditLogUseCase = createAuditLogUseCase;
+        this.auditLogService = auditLogService;
     }
-    async execute(data) {
+    async execute(data, context) {
         try {
             const existingUser = await this.usersRepository.findByEmail(data.email);
             if (existingUser) {
@@ -23,12 +23,20 @@ export class CreateUserUseCase {
                 lastName: data.lastName,
                 roles: data.roles
             });
-            await this.createAuditLogUseCase.execute({
+            await this.auditLogService.record({
+                userId: context?.userId,
                 action: 'CREATE',
-                resource: 'USER',
+                resource: 'user',
                 resourceId: user.id,
-                details: { email: user.email }
-            }).catch(err => console.error("Failed to create audit log for user creation", err));
+                context,
+                details: {
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    roles: user.roles,
+                    isActive: user.isActive
+                }
+            });
             return user;
         }
         catch (error) {

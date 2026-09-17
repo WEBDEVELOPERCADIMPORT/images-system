@@ -21,6 +21,7 @@ import {
 } from '@mui/icons-material';
 import { useAuthStore } from '../../../../core/store/authStore';
 import { useSidebar, SIDEBAR_EXPANDED_WIDTH, SIDEBAR_COLLAPSED_WIDTH } from '../sidebar/SidebarContext';
+import { api } from '../../../../core/api/axios.instance';
 
 export const Navbar: React.FC = () => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -44,11 +45,18 @@ export const Navbar: React.FC = () => {
         navigate('/profile');
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
         handleCloseMenu();
-        clearAuth();
-        navigate('/auth/login', { state: { from: location } });
+        try {
+            await api.post('/auth/logout');
+        } catch (err) {
+            console.error('Logout error on server:', err);
+        } finally {
+            clearAuth();
+            navigate('/auth/login', { state: { from: location } });
+        }
     };
+
 
     const initials = user?.name
         ? user.name

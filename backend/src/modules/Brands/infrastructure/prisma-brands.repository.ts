@@ -18,7 +18,7 @@ export class PrismaBrandsRepository implements BrandsRepository {
                     _count: {
                         select: {
                             folders: true,
-                            images: true
+                            assets: true
                         }
                     }
                 }
@@ -41,7 +41,7 @@ export class PrismaBrandsRepository implements BrandsRepository {
                     _count: {
                         select: {
                             folders: true,
-                            images: true
+                            assets: true
                         }
                     }
                 }
@@ -60,7 +60,7 @@ export class PrismaBrandsRepository implements BrandsRepository {
                     _count: {
                         select: {
                             folders: true,
-                            images: true
+                            assets: true
                         }
                     }
                 }
@@ -79,7 +79,7 @@ export class PrismaBrandsRepository implements BrandsRepository {
                     _count: {
                         select: {
                             folders: true,
-                            images: true
+                            assets: true
                         }
                     }
                 }
@@ -98,7 +98,7 @@ export class PrismaBrandsRepository implements BrandsRepository {
                     _count: {
                         select: {
                             folders: true,
-                            images: true
+                            assets: true
                         }
                     }
                 }
@@ -135,7 +135,7 @@ export class PrismaBrandsRepository implements BrandsRepository {
                         _count: {
                             select: {
                                 folders: true,
-                                images: true
+                                assets: true
                             }
                         }
                     }
@@ -162,14 +162,15 @@ export class PrismaBrandsRepository implements BrandsRepository {
         }
     }
 
-    async getStats(): Promise<{ totalBrands: number; totalFolders: number; totalImages: number }> {
+    async getStats(): Promise<{ totalBrands: number; totalFolders: number; totalImages: number; totalAssets?: number }> {
         try {
-            const [totalBrands, totalFolders, totalImages] = await Promise.all([
+            const [totalBrands, totalFolders, totalImages, totalAssets] = await Promise.all([
                 this.prisma.brand.count(),
                 this.prisma.folder.count(),
-                this.prisma.image.count()
+                this.prisma.asset.count({ where: { type: 'IMAGE' } }),
+                this.prisma.asset.count()
             ]);
-            return { totalBrands, totalFolders, totalImages };
+            return { totalBrands, totalFolders, totalImages, totalAssets };
         } catch (error) {
             throw PrismaErrorMapper.map(error);
         }

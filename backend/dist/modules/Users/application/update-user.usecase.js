@@ -3,12 +3,12 @@ import { UniqueConstraintError } from "../../../shared/db/database/errors/Unique
 import { NotFoundPersistenceError } from "../../../shared/db/database/errors/NotFoundPersistenceError.js";
 export class UpdateUserUseCase {
     usersRepository;
-    createAuditLogUseCase;
-    constructor(usersRepository, createAuditLogUseCase) {
+    auditLogService;
+    constructor(usersRepository, auditLogService) {
         this.usersRepository = usersRepository;
-        this.createAuditLogUseCase = createAuditLogUseCase;
+        this.auditLogService = auditLogService;
     }
-    async execute(id, data) {
+    async execute(id, data, context) {
         try {
             const user = await this.usersRepository.findById(id);
             if (!user) {
@@ -21,12 +21,27 @@ export class UpdateUserUseCase {
                 }
             }
             const updatedUser = await this.usersRepository.update(id, data);
-            await this.createAuditLogUseCase.execute({
+            await this.auditLogService.record({
+                userId: context?.userId,
                 action: 'UPDATE',
-                resource: 'USER',
+                resource: 'user',
                 resourceId: updatedUser.id,
-                details: { updatedFields: Object.keys(data) }
-            }).catch(err => console.error("Failed to create audit log for user update", err));
+                context,
+                before: {
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    roles: user.roles,
+                    isActive: user.isActive
+                },
+                after: {
+                    email: updatedUser.email,
+                    firstName: updatedUser.firstName,
+                    lastName: updatedUser.lastName,
+                    roles: updatedUser.roles,
+                    isActive: updatedUser.isActive
+                }
+            });
             return updatedUser;
         }
         catch (error) {

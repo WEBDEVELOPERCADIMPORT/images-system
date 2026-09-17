@@ -1,18 +1,11 @@
-import type { AuditRepository } from "../domain/audit.repository.js";
+import type { AuditLogService, RecordAuditParams } from "./audit-log.service.js";
 import type { AuditLog, CreateAuditLog } from "../domain/audit-log.entity.js";
-import AppError from "@shared/errors/AppError.js";
 
 export class CreateAuditLogUseCase {
-    constructor(private readonly auditRepository: AuditRepository) {}
+    constructor(private readonly auditLogService: AuditLogService) {}
 
-    async execute(data: CreateAuditLog): Promise<AuditLog> {
-        try {
-            return await this.auditRepository.create(data);
-        } catch (error) {
-            if (error instanceof AppError) {
-                throw error;
-            }
-            throw new AppError("Error creating audit log", "INTERNAL_SERVER_ERROR", 500);
-        }
+    async execute(data: CreateAuditLog | RecordAuditParams): Promise<AuditLog | null> {
+        return await this.auditLogService.record(data as RecordAuditParams);
     }
 }
+

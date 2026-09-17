@@ -16,6 +16,7 @@ export interface UpdateBrand {
 export interface BrandCounts {
     folders: number;
     images: number;
+    assets?: number;
 }
 export interface GetBrand {
     id: string;

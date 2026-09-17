@@ -2,12 +2,12 @@ import AppError from "../../../shared/errors/AppError.js";
 import { UniqueConstraintError } from "../../../shared/db/database/errors/UniqueConstraintError.js";
 export class CreateBrandUseCase {
     brandsRepository;
-    createAuditLogUseCase;
-    constructor(brandsRepository, createAuditLogUseCase) {
+    auditLogService;
+    constructor(brandsRepository, auditLogService) {
         this.brandsRepository = brandsRepository;
-        this.createAuditLogUseCase = createAuditLogUseCase;
+        this.auditLogService = auditLogService;
     }
-    async execute(data, userId) {
+    async execute(data, context) {
         try {
             const existing = await this.brandsRepository.findByName(data.name.trim());
             if (existing) {
@@ -17,13 +17,17 @@ export class CreateBrandUseCase {
                 name: data.name.trim(),
                 description: data.description?.trim() || null
             });
-            await this.createAuditLogUseCase.execute({
-                userId,
+            await this.auditLogService.record({
+                userId: context?.userId,
                 action: 'CREATE',
-                resource: 'BRAND',
+                resource: 'brand',
                 resourceId: brand.id,
-                details: { name: brand.name }
-            }).catch(err => console.error("Failed to create audit log for brand create", err));
+                context,
+                details: {
+                    name: brand.name,
+                    description: brand.description
+                }
+            });
             return brand;
         }
         catch (error) {

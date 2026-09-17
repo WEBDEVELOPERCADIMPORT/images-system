@@ -9,7 +9,7 @@ import {
     CircularProgress,
     Button,
 } from '@mui/material';
-import { Business, Folder, Image, ArrowForward } from '@mui/icons-material';
+import { Business, Folder, Image, ArrowForward, PermMedia } from '@mui/icons-material';
 import { PageHeader } from '../components/common/PageHeader';
 import { ListTableSimple, type Column } from '../components/tables/ListTableSimple';
 import { getBrandStats, getAllBrands } from '../../modules/brands/infrastructure/services/brands.service';
@@ -22,6 +22,7 @@ export const DashboardPage: React.FC = () => {
         totalBrands: 0,
         totalFolders: 0,
         totalImages: 0,
+        totalAssets: 0,
     });
     const [recentBrands, setRecentBrands] = useState<BrandDto[]>([]);
     const [loading, setLoading] = useState(true);
@@ -107,7 +108,7 @@ export const DashboardPage: React.FC = () => {
             <Box
                 sx={{
                     display: 'grid',
-                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
                     gap: 2.5,
                     mb: 4,
                 }}
@@ -200,6 +201,37 @@ export const DashboardPage: React.FC = () => {
                             </Box>
                             <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
                                 <Image sx={{ fontSize: 28 }} />
+                            </Box>
+                        </Stack>
+                    </CardContent>
+                </Card>
+
+                <Card
+                    elevation={0}
+                    sx={{
+                        borderRadius: '16px',
+                        border: '0.5px solid',
+                        borderColor: 'divider',
+                        bgcolor: 'background.paper',
+                        p: 1,
+                    }}
+                >
+                    <CardContent>
+                        <Stack
+                            direction="row"
+                            spacing={2}
+                            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+                        >
+                            <Box>
+                                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase' }}>
+                                    Total Assets
+                                </Typography>
+                                <Typography variant="h4" sx={{ fontWeight: 700, mt: 0.5, color: 'text.primary' }}>
+                                    {loading ? <CircularProgress size={24} /> : (stats.totalAssets ?? stats.totalImages)}
+                                </Typography>
+                            </Box>
+                            <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }}>
+                                <PermMedia sx={{ fontSize: 28 }} />
                             </Box>
                         </Stack>
                     </CardContent>

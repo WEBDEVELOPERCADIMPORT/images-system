@@ -8,7 +8,8 @@ export class BrandsMapper {
             updatedAt: prismaBrand.updatedAt,
             _count: prismaBrand._count ? {
                 folders: prismaBrand._count.folders ?? 0,
-                images: prismaBrand._count.images ?? 0,
+                images: prismaBrand._count.assets ?? prismaBrand._count.images ?? 0,
+                assets: prismaBrand._count.assets ?? 0,
             } : undefined
         };
     }

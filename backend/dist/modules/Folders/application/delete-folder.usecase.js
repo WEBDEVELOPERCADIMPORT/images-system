@@ -1,25 +1,34 @@
 import AppError from "../../../shared/errors/AppError.js";
 export class DeleteFolderUseCase {
     foldersRepository;
-    createAuditLogUseCase;
-    constructor(foldersRepository, createAuditLogUseCase) {
+    auditLogService;
+    constructor(foldersRepository, auditLogService) {
         this.foldersRepository = foldersRepository;
-        this.createAuditLogUseCase = createAuditLogUseCase;
+        this.auditLogService = auditLogService;
     }
-    async execute(id, userId) {
+    async execute(id, context) {
         try {
             const existing = await this.foldersRepository.findById(id);
             if (!existing) {
                 throw new AppError("Folder not found", "FOLDER_NOT_FOUND", 404);
             }
             await this.foldersRepository.delete(id);
-            await this.createAuditLogUseCase.execute({
-                userId,
+            await this.auditLogService.record({
+                userId: context?.userId,
                 action: 'DELETE',
-                resource: 'FOLDER',
+                resource: 'folder',
                 resourceId: id,
-                details: { name: existing.name, brandId: existing.brandId }
-            }).catch(err => console.error("Failed to create audit log for folder delete", err));
+                context,
+                details: {
+                    deleted: {
+                        id: existing.id,
+                        name: existing.name,
+                        brandId: existing.brandId,
+                        parentId: existing.parentId,
+                        description: existing.description
+                    }
+                }
+            });
         }
         catch (error) {
             if (error instanceof AppError) {

@@ -6,6 +6,7 @@ type PrismaFolderFull = PrismaFolder & {
     parent?: { id: string; name: string } | null;
     _count?: {
         children?: number;
+        assets?: number;
         images?: number;
     };
 };
@@ -30,7 +31,8 @@ export class FoldersMapper {
             } : folder.parentId === null ? null : undefined,
             _count: folder._count ? {
                 children: folder._count.children ?? 0,
-                images: folder._count.images ?? 0
+                images: folder._count.assets ?? folder._count.images ?? 0,
+                assets: folder._count.assets ?? 0
             } : undefined
         };
     }

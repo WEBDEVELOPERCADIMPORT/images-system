@@ -18,9 +18,14 @@ router.post('/refresh',
     authController.refresh
 )
 
+router.post('/logout',
+    authMiddleware.routeProtect,
+    authController.logout
+);
+
 router.get('/me',
     authMiddleware.routeProtect,
     authController.getProfile
-)
+);
 
 export default router;

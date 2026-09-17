@@ -1,14 +1,15 @@
 import type { FoldersRepository } from "../domain/folders.repository.js";
-import type { CreateAuditLogUseCase } from "../../Audit/application/create-audit-log.usecase.js";
+import type { AuditLogService } from "../../Audit/application/audit-log.service.js";
+import type { AuditContext } from "../../Audit/domain/audit-log.entity.js";
 import AppError from "@shared/errors/AppError.js";
 
 export class DeleteFolderUseCase {
     constructor(
         private readonly foldersRepository: FoldersRepository,
-        private readonly createAuditLogUseCase: CreateAuditLogUseCase
+        private readonly auditLogService: AuditLogService
     ) {}
 
-    async execute(id: string, userId?: string | null): Promise<void> {
+    async execute(id: string, context?: AuditContext): Promise<void> {
         try {
             const existing = await this.foldersRepository.findById(id);
             if (!existing) {
@@ -17,13 +18,22 @@ export class DeleteFolderUseCase {
 
             await this.foldersRepository.delete(id);
 
-            await this.createAuditLogUseCase.execute({
-                userId,
+            await this.auditLogService.record({
+                userId: context?.userId,
                 action: 'DELETE',
-                resource: 'FOLDER',
+                resource: 'folder',
                 resourceId: id,
-                details: { name: existing.name, brandId: existing.brandId }
-            }).catch(err => console.error("Failed to create audit log for folder delete", err));
+                context,
+                details: {
+                    deleted: {
+                        id: existing.id,
+                        name: existing.name,
+                        brandId: existing.brandId,
+                        parentId: existing.parentId,
+                        description: existing.description
+                    }
+                }
+            });
         } catch (error) {
             if (error instanceof AppError) {
                 throw error;
@@ -32,3 +42,4 @@ export class DeleteFolderUseCase {
         }
     }
 }
+

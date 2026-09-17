@@ -21,9 +21,9 @@ export class FoldersController extends BaseController {
 
     create = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const user = (req as any).user;
             const data = req.body;
-            const folder = await this.createFolderUseCase.execute(data, user?.id);
+            const auditContext = this.getAuditContext(req, res);
+            const folder = await this.createFolderUseCase.execute(data, auditContext);
             return res.status(201).json(ResponseHttp.success("Folder created successfully", folder));
         } catch (error) {
             next(error);
@@ -34,8 +34,8 @@ export class FoldersController extends BaseController {
         try {
             const brandId = req.query.brandId ? String(req.query.brandId) : undefined;
             const parentIdParam = req.query.parentId;
-            const parentId = parentIdParam === undefined 
-                ? undefined 
+            const parentId = parentIdParam === undefined
+                ? undefined
                 : (parentIdParam === "null" || parentIdParam === "" ? null : String(parentIdParam));
             const q = req.query.q ? String(req.query.q) : undefined;
             const all = req.query.all === "true";
@@ -68,10 +68,10 @@ export class FoldersController extends BaseController {
 
     update = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const user = (req as any).user;
             const id = req.params.id as string;
             const data = req.body;
-            const folder = await this.updateFolderUseCase.execute(id, data, user?.id);
+            const auditContext = this.getAuditContext(req, res);
+            const folder = await this.updateFolderUseCase.execute(id, data, auditContext);
             return res.status(200).json(ResponseHttp.success("Folder updated successfully", folder));
         } catch (error) {
             next(error);
@@ -80,12 +80,13 @@ export class FoldersController extends BaseController {
 
     delete = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const user = (req as any).user;
             const id = req.params.id as string;
-            await this.deleteFolderUseCase.execute(id, user?.id);
+            const auditContext = this.getAuditContext(req, res);
+            await this.deleteFolderUseCase.execute(id, auditContext);
             return res.status(200).json(ResponseHttp.success("Folder deleted successfully", null));
         } catch (error) {
             next(error);
         }
     };
+
 }
